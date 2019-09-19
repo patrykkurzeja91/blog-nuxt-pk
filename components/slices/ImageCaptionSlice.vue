@@ -28,7 +28,7 @@
 export default {
   props: ['slice'],
   name: 'image-caption-slice',
-  data: function() {
+  data() {
     return {
       img: '',
       caption: '',

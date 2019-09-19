@@ -13,7 +13,7 @@ export default function (type, element, content, children) {
   // Present by default, it is recommended to keep this
   if (type === Elements.hyperlink) {
     let result = ''
-    const url = prismicDOM.Link.url(element.data, linkResolver)
+    const url = `/blog/${prismicDOM.Link.url(element.data, linkResolver)}`
 
     if (element.data.link_type === 'Document') {
       result = `<nuxt-link to="${url}">${content}</nuxt-link>`

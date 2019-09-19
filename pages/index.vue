@@ -1,79 +1,82 @@
 <template>
   <section class="home">
     <article>
-      <!-- Button to edit document in dashboard -->
-      <prismic-edit-button :documentId="documentId"/>
-      <div class="blog-avatar" :style="{ backgroundImage: 'url(' + image + ')' }" ></div>
-      <!-- Template for page title -->
-      <h1 class="blog-title">
-        {{ $prismic.richTextAsPlain(homepageContent.headline) }}
-      </h1>
+      <h1 class="blog-title">{{ $prismic.richTextAsPlain(homepageContent.title) }}</h1>
       <!-- Template for page description -->
-      <p class="blog-description">{{ $prismic.richTextAsPlain(homepageContent.description) }}</p>
-      
-      <!-- Check blog posts exist -->
-      <div v-if="posts.length !== 0" class="blog-main">
-        <!-- Template for blog posts -->
-        <section v-for="post in posts" :key="post.id" v-bind:post="post" class="blog-post">
-          <!-- Here :post="post" passes the data to the component -->
-          <blog-widget :post="post"></blog-widget>
-        </section>
-      </div>
-      <!-- If no blog posts return message -->
-      <div v-else class="blog-main">
-        <p>No Posts published at this time.</p>
-      </div>
+      <p class="blog-description">{{ $prismic.richTextAsPlain(homepageContent.subtitle) }}</p>
     </article>
+    <section-explore :exploreTitle="exploreTitle" :exploreSubtitle="exploreSubtitle" />
   </section>
 </template>
 
 <script>
-import Prismic from "prismic-javascript"
-import PrismicConfig from "~/prismic.config.js"
+import Prismic from "prismic-javascript";
+import PrismicConfig from "~/prismic.config.js";
+import { mapState, mapActions } from "vuex"
 // Importing blog posts widget
-import BlogWidget from '~/components/BlogWidget.vue'
-
+import SectionExplore from "~/components/SectionExplore";
 export default {
-  name: 'Home',
+  name: "Home",
   components: {
-    BlogWidget
+    SectionExplore
   },
-  head () {
+  head() {
     return {
-      title: 'Prismic Nuxt.js Blog',
+      title: "Nuxt.js"
+    };
+  },
+  async fetch ({ store, context, error, req }) {
+    await store.dispatch('fetchHomepage', req);
+  },
+  // async asyncData({ context, error, req }) {
+  //   try {
+  //     // Query to get API object
+  //     const api = await Prismic.getApi(PrismicConfig.apiEndpoint, { req });
+  //     console.log(req)
+  //     // Query to get blog home content
+  //     const document = await api.getSingle("homepage");
+  //     let homepageContent = document.data;
+
+  //     const getAlternateLanguage = function(document, languageCode) {
+  //       for (const altLang of document.alternate_languages) {
+  //         if (altLang.lang === languageCode) {
+  //           return altLang;
+  //         }
+  //       }
+  //       return null;
+  //     };
+
+  //     const frenchAltLang = getAlternateLanguage(document, "en-gb");
+
+  //     let { explore_title, explore_subtitle } = document.data;
+  //     // Load the edit button
+  //     if (process.client) window.prismic.setupEditButton();
+
+  //     // Returns data to be used in template
+  //     return {
+  //       homepageContent,
+  //       frenchAltLang,
+  //       documentId: document.id,
+  //       exploreTitle: explore_title,
+  //       exploreSubtitle: explore_subtitle
+  //     };
+  //   } catch (e) {
+  //     // Returns error page
+  //     error({ statusCode: 404, message: "Page not found" });
+  //   }
+  // },
+  computed: {
+    ...mapState({
+      homepageContent: (state) => state.homepage.data || {}
+    }),
+    exploreTitle() {
+      return this.homepageContent.explore_title
+    },
+    exploreSubtitle() {
+      return this.homepageContent.explore_subtitle
     }
   },
-  async asyncData({context, error, req}) {
-    try{
-      // Query to get API object
-      const api = await Prismic.getApi(PrismicConfig.apiEndpoint, {req})
-
-      // Query to get blog home content
-      const document = await api.getSingle('blog_home')
-      let homepageContent = document.data
-
-      // Query to get posts content to preview
-      const blogPosts = await api.query(
-        Prismic.Predicates.at("document.type", "post"),
-        { orderings : '[my.post.date desc]' }
-      )
-
-      // Load the edit button
-      if (process.client) window.prismic.setupEditButton()
-
-      // Returns data to be used in template
-      return {
-        homepageContent,
-        documentId: document.id,
-        posts: blogPosts.results,
-        image: homepageContent.image.url,
-      }
-    } catch (e) {
-      // Returns error page
-      error({ statusCode: 404, message: 'Page not found' })
-    }
-  },
-}
+};
 </script>
 
 <style lang="sass" scoped>
